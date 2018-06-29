@@ -1,8 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 26 18:11:17 2018
-
 @author: shaopan
 """
 import pandas as pd
@@ -12,7 +10,7 @@ import sklearn
 # import file
 file = 'no_questionMark.csv'
 df = pd.read_csv(file)
-print(df.head(10))
+#print(df.head(10))
 print(df.shape)
 print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 # origin dataframe shape (32561, 15)
@@ -31,7 +29,8 @@ print("The following is the naive bayes algorithm")
 # and education level can be generate by education numnber of year 
 # ex. 1 to 5 in number of education number of year represent elementary school
 nb = df_dropNull.drop(['education','relationship'], axis = 1)
-print(nb.head())
+nb.reset_index(drop=True, inplace=True)
+#print(nb.head())
 print(nb.shape)
 print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 
@@ -110,9 +109,9 @@ def transfer_occuption(x):
 def transfer_race(x):
     if (x == ' White'):
         return 0
-    elif (x == ' Amer-Indian-Eskimo'):
-        return 1
     elif (x == ' Asian-Pac-Islander'):
+        return 1    
+    elif (x == ' Amer-Indian-Eskimo'):
         return 2
     elif (x == ' Black'):
         return 3
@@ -128,25 +127,20 @@ def transfer_sex(x):
         return 1   
 # end of transfer_sex
 
-'''
+
 # chagnge native country
-def transfer_nativeCountry(x):
-    if (x == ' Canada' || x == ' United-States'):
-        return 0
-    elif (x == ' Married-AF-spouse'):
-        return 1
-    elif (x == ' Married-civ-spouse'):
-        return 2
-    elif (x == ' Married-spouse-absent'):
-        return 3
-    elif (x == ' Never-married'):
-        return 4
-    elif (x == ' Separated'):
-        return 5
-    elif (x == ' Widowed'):
-        return 6
+# For each country who has not meet before, add it into country_list, this country's
+# number is the current list size - 1        
+def transfer_nativeCountry():
+    country_list = []
+    for i in range(nb.shape[0]):
+        if (nb.iloc[i][11] in country_list):
+            nb.at[i,'native country'] = country_list.index(nb.iloc[i]['native country'])
+        else :
+            country_list.append(nb.iloc[i]['native country'])
+            nb.at[i,'native country'] = len(country_list) - 1
 # end of transfer_nativeCountry
-'''
+
 
 # chagnge revenue
 def transfer_revenue(x):
@@ -155,14 +149,18 @@ def transfer_revenue(x):
     else:
         return 1   
 # end of transfer_revenue
-
+print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 # Apply all the functions on data frame, and transfer all category data into numerical data
 nb['workclass'] = nb['workclass'].apply(transfer_workclass)
 nb['marital-status'] = nb['marital-status'].apply(transfer_marital)
 nb['Occuption'] = nb['Occuption'].apply(transfer_occuption)
 nb['race'] = nb['race'].apply(transfer_race)
 nb['sex'] = nb['sex'].apply(transfer_sex)
-#nb['native country'] = nb['native country'].apply(transfer_nativeCountry)
+transfer_nativeCountry()
+nb.at[0,'native country'] = 1
 nb['revenue'] = nb['revenue'].apply(transfer_revenue)
-print(nb.head(20))
+
+# peek the finished dataframe and save it
+print(nb.head(10))
+nb.to_csv('all_number.csv', sep=',')
 
