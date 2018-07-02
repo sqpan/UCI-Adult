@@ -12,3 +12,4 @@ import pandas as pd
 file = 'all_number.csv'
 df = pd.read_csv(file)
 
+
